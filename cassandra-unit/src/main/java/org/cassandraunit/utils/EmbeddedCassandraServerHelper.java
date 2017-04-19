@@ -40,6 +40,7 @@ public class EmbeddedCassandraServerHelper {
     public static final String DEFAULT_CASSANDRA_YML_FILE = "cu-cassandra.yaml";
     /** Configuration file which starts the embedded cassandra on a random free port */
     public static final String CASSANDRA_RNDPORT_YML_FILE = "cu-cassandra-rndport.yaml";
+    public static final String CASSANDRA_CONCURRENT_YML_FILE = "cu-cassandra-concurrent.yaml";
     public static final String DEFAULT_LOG4J_CONFIG_FILE = "/log4j-embedded-cassandra.properties";
     private static final String INTERNAL_CASSANDRA_KEYSPACE = "system";
     private static final String INTERNAL_CASSANDRA_AUTH_KEYSPACE = "system_auth";
@@ -81,7 +82,7 @@ public class EmbeddedCassandraServerHelper {
         rmdir(tmpDir);
         copy(yamlFile, tmpDir);
         File file = new File(tmpDir + yamlFile);
-        readAndAdaptYaml(file);
+        readAndAdaptYaml(file, tmpDir);
         startEmbeddedCassandra(file, tmpDir, timeout);
     }
 
@@ -124,6 +125,7 @@ public class EmbeddedCassandraServerHelper {
                 startupLatch.countDown();
             }
         });
+
         try {
             if (!startupLatch.await(timeout, MILLISECONDS)) {
                 log.error("Cassandra daemon did not start after " + timeout + " ms. Consider increasing the timeout");
@@ -335,7 +337,7 @@ public class EmbeddedCassandraServerHelper {
 
     }
 
-    private static void readAndAdaptYaml(File cassandraConfig) throws IOException {
+    private static void readAndAdaptYaml(File cassandraConfig, String baseDir) throws IOException {
         String yaml = readYamlFileToString(cassandraConfig);
 
         // read the ports and replace them if zero. dump back the changed string, preserving comments (thus no snakeyaml)
@@ -358,11 +360,26 @@ public class EmbeddedCassandraServerHelper {
         }
         portMatcher.appendTail(sb);
 
+        String replacedWithTempDir = replaceWithTempDir(sb.toString(), baseDir);
+
         if (replaced) {
-            writeStringToYamlFile(cassandraConfig, sb.toString());
+            writeStringToYamlFile(cassandraConfig, replacedWithTempDir);
         }
     }
-    
+
+    private static String replaceWithTempDir(String yaml, String baseDir) {
+        Pattern baseDirPattern = Pattern.compile("\\$\\{BASE_DIR}", Pattern.MULTILINE);
+        Matcher baseDirMatcher = baseDirPattern.matcher(yaml);
+        StringBuffer sb = new StringBuffer();
+        boolean replaced = false;
+        while (baseDirMatcher.find()) {
+            baseDirMatcher.appendReplacement(sb, baseDir);
+        }
+        baseDirMatcher.appendTail(sb);
+
+        return sb.toString();
+    }
+
     private static String readYamlFileToString(File yamlFile) throws IOException {
         // using UnicodeReader to read the correct encoding according to BOM
         try (UnicodeReader reader = new UnicodeReader(new FileInputStream(yamlFile))) {

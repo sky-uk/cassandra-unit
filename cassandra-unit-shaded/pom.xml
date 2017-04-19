@@ -3,18 +3,18 @@
     <parent>
         <groupId>org.cassandraunit</groupId>
         <artifactId>cassandra-unit-parent</artifactId>
-        <version>2.1.9.2</version>
+        <version>2.1.9.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.cassandraunit</groupId>
     <artifactId>cassandra-unit-shaded</artifactId>
-    <version>2.1.9.2</version>
+    <version>2.1.9.2-SNAPSHOT</version>
     <name>cassandra-unit-shaded</name>
     <packaging>jar</packaging>
     <description>
-        cassandra-unit with some shaded dependencies to avoid known version clashes. 
+        cassandra-unit with some shaded dependencies to avoid known version clashes.
 
-        Make sure to depend on cassandra-unit-shaded in test-scope only, else 
+        Make sure to depend on cassandra-unit-shaded in test-scope only, else
         your generated artefact will contain a lot of unneeded dependencies.
 
         cassandra-unit-shaded is a replacement for cassandra-unit only, not also
@@ -31,7 +31,7 @@
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit</artifactId>
-            <version>2.1.9.2</version>
+            <version>2.1.9.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
